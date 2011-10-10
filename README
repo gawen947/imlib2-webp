@@ -6,7 +6,7 @@ About WebP
 ==========
 WebP is a new image format that provides lossy compression for photographic 
 images. In a large scale study of 900,000 web images, WebP images were 39.8%
- smaller than jpeg images of similar quality.
+smaller than jpeg images of similar quality.
 
 A WebP file consists of VP8 image data, and a container based on RIFF. The 
 standalone libwebp library serves as a reference implementation for the 
