@@ -34,9 +34,9 @@ clean:
 	$(RM) imlib2-thumbnailer
 
 install: all
-	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(BIN)
-	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(THUMB)
-	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(GCONF)/schemas
+	$(INSTALL_DIR) $(DESTDIR)/$(PREFIX)/$(BIN)
+	$(INSTALL_DIR) $(DESTDIR)/$(PREFIX)/$(THUMB)
+	$(INSTALL_DIR) $(DESTDIR)/$(PREFIX)/$(GCONF)/schemas
 	$(INSTALL_PROGRAM) imlib2-thumbnailer $(DESTDIR)/$(PREFIX)/$(BIN)
 	$(INSTALL_DATA) webp.xml $(DESTDIR)/$(PREFIX)/$(MIME)/packages
 	$(INSTALL_DATA) webp-thumbnailer.desktop $(DESTDIR)/$(PREFIX)/$(THUMB)

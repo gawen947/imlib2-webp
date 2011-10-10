@@ -31,7 +31,7 @@ clean:
 	$(RM) webp.so
 
 install:
-	$(MKDIR) -p $(DESTDIR)$(LOADERDIR)
+	$(INSTALL_DIR) $(DESTDIR)$(LOADERDIR)
 	$(INSTALL_LIBS) webp.so $(DESTDIR)$(LOADERDIR)
 
 uninstall:
