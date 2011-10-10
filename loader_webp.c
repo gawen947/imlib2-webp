@@ -115,7 +115,7 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
   }
 
   if((!im->data && im->loader) || immediate_load || progress)
-    im->data = (DATA32*)WebPDecodeRGBA(data, size, &w, &h);
+    im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
 
   ret = 1;
 
