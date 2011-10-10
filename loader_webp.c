@@ -1,5 +1,5 @@
 /* File: loader_webp.c
-   Time-stamp: <2011-10-10 17:53:15 gawen>
+   Time-stamp: <2011-10-10 18:34:31 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
    All rights reserved.
@@ -174,8 +174,8 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
 
   fqual = (float)quality;
 
-  if(!(size = WebPEncodeBGRA((const uint8_t *)im->data, im->w, im->h, 1, fqual,
-                             &data)))
+  if(!(size = WebPEncodeBGRA((const uint8_t *)im->data, im->w, im->h,
+                             im->w << 2, fqual, &data)))
     goto EXIT;
 
   if(write(fd, data, size) != size)
