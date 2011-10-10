@@ -36,11 +36,10 @@ clean:
 install: all
 	$(INSTALL_DIR) $(DESTDIR)/$(PREFIX)/$(BIN)
 	$(INSTALL_DIR) $(DESTDIR)/$(PREFIX)/$(THUMB)
-	$(INSTALL_DIR) $(DESTDIR)/$(PREFIX)/$(GCONF)/schemas
 	$(INSTALL_PROGRAM) imlib2-thumbnailer $(DESTDIR)/$(PREFIX)/$(BIN)
 	$(INSTALL_DATA) webp.xml $(DESTDIR)/$(PREFIX)/$(MIME)/packages
 	$(INSTALL_DATA) webp-thumbnailer.desktop $(DESTDIR)/$(PREFIX)/$(THUMB)
-	$(INSTALL_DATA) webp-thumbnailer.schemas $(DESTDIR)/usr/$(GCONF)/schemas
+	$(INSTALL_DATA) webp-thumbnailer.schemas $(DESTDIR)/usr/$(GCONF)/schemas #ugly
 	gconf-schemas --register webp-thumbnailer.schemas
 	update-mime-database $(DESTDIR)/$(PREFIX)/$(MIME)
 
