@@ -147,5 +147,6 @@ struct _imlibloader
    ( ((w) > 0) && ((h) > 0) && \
      ((unsigned long long)(w) * (unsigned long long)(h) <= (1ULL << 29) - 1) )
 
+EAPI ImlibImageTag *__imlib_GetTag(ImlibImage *im, const char *key);
 
 #endif /* _IMLIB2_COMMON_H_ */

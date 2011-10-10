@@ -1,5 +1,5 @@
 /* File: loader_webp.c
-   Time-stamp: <2011-10-10 02:00:19 gawen>
+   Time-stamp: <2011-10-10 17:05:33 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
    All rights reserved.
@@ -42,6 +42,8 @@
 
 #include "imlib2_common.h"
 #include "loader.h"
+
+#include <stdio.h>
 
 #define BLK_SZ 524288
 
@@ -115,7 +117,7 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
   }
 
   if((!im->data && im->loader) || immediate_load || progress)
-    im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
+     im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
 
   ret = 1;
 
@@ -127,7 +129,70 @@ EXIT:
 char save(ImlibImage *im, ImlibProgressFunction progress,
           char progress_granularity)
 {
-  return 0;
+  ImlibImageTag *tag;
+  uint8_t *data;
+  float fqual;
+  size_t size;
+  int fd;
+  int quality = 75;
+  char ret = 0;
+
+  if(!im->data)
+    return 0;
+
+#ifndef __EMX__
+  if((fd = open(im->real_file, O_WRONLY | O_CREAT,
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) < 0)
+#else
+  if((fd = open(im->real_file, O_WRONLY | O_CREAT | O_BINARY,
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) < 0)
+#endif
+    return 0;
+
+  /* look for tags attached to image to get extra parameters like quality
+     settings etc. - this is the "api" to hint for extra information for
+     saver modules */
+  tag = __imlib_GetTag(im, "compression");
+  if(tag) {
+    int compression = tag->val;
+
+    if(compression < 0)
+      compression = 0;
+    else if(compression > 9)
+      compression = 9;
+
+    quality = (9 - compression) * 10;
+    quality = quality * 10 / 9;
+  }
+  tag = __imlib_GetTag(im, "quality");
+  if(tag) {
+    quality = tag->val;
+
+    if(quality < 1)
+      quality = 1;
+    else if(quality > 100)
+      quality = 100;
+  }
+
+  fqual = (float)quality;
+
+  if(!(size = WebPEncodeBGRA((const uint8_t *)im->data, im->w, im->h, 1, fqual,
+                             &data))) {
+    printf("bp @1\n");
+    goto EXIT;
+  }
+
+
+  if(write(fd, data, size) != size)
+    goto EXIT;
+
+  ret = 1;
+
+EXIT:
+  close(fd);
+  if(data)
+    free(data);
+  return ret;
 }
 
 void formats(ImlibLoader *l)
