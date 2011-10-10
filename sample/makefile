@@ -10,6 +10,8 @@ DEP = $(SRC:.c=.d)
 
 PREFIX ?= /usr/local
 MIME   ?= /share/mime
+THUMB  ?= /share/thumbnailers/
+GCONF  ?= /share/gconf
 BIN    ?= /bin
 
 ifndef DISABLE_DEBUG
@@ -33,9 +35,15 @@ clean:
 
 install: all
 	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(BIN)
+	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(THUMB)
+	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(GCONF)/schemas
 	$(INSTALL_PROGRAM) imlib2-thumbnailer $(DESTDIR)/$(PREFIX)/$(BIN)
 	$(INSTALL_DATA) webp.xml $(DESTDIR)/$(PREFIX)/$(MIME)/packages
+	$(INSTALL_DATA) webp-thumbnailer.desktop $(DESTDIR)/$(PREFIX)/$(THUMB)
+	$(INSTALL_DATA) webp-thumbnailer.schemas $(DESTDIR)/usr/$(GCONF)/schemas
+	gconf-schemas --register webp-thumbnailer.schemas
 	update-mime-database $(DESTDIR)/$(PREFIX)/$(MIME)
+
 
 uninstall:
 	$(RM) $(DESTDIR)/$(PREFIX)/$(BIN)/imlib2-thumbnailer

@@ -1,0 +1,26 @@
+<gconfschemafile>
+<schemalist>
+ <schema>
+  <key>/schemas/desktop/gnome/thumbnailers/image@webp/enable</key>
+  <applyto>/desktop/gnome/thumbnailers/image@webp/enable</applyto>
+  <owner>webp-thumbnailer</owner>
+  <type>bool</type>
+  <default>true</default>
+  <locale name="C">
+   <short/>
+   <long/>
+  </locale>
+ </schema>
+ <schema>
+  <key>/schemas/desktop/gnome/thumbnailers/image@webp/command</key>
+   <applyto>/desktop/gnome/thumbnailers/image@webp/command</applyto>
+   <owner>webp-thumbnailer</owner>
+   <type>string</type>
+   <default>imlib2-thumbnailer %i %o %s</default>
+   <locale name="C">
+    <short/>
+    <long/>
+   </locale>
+ </schema>
+</schemalist>
+</gconfschemafile>

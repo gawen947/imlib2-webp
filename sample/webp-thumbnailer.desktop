@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Type=X-Thumbnailer
+Name=WebP thumbnailer
+MimeType=image/webp;
+X-Thumbnailer-Exec=/usr/local/bin/imlib2-thumbnailer %i %o %s
