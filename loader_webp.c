@@ -1,5 +1,5 @@
 /* File: loader_webp.c
-   Time-stamp: <2011-10-10 17:05:33 gawen>
+   Time-stamp: <2011-10-10 17:53:15 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
    All rights reserved.
@@ -42,8 +42,6 @@
 
 #include "imlib2_common.h"
 #include "loader.h"
-
-#include <stdio.h>
 
 #define BLK_SZ 524288
 
@@ -177,11 +175,8 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
   fqual = (float)quality;
 
   if(!(size = WebPEncodeBGRA((const uint8_t *)im->data, im->w, im->h, 1, fqual,
-                             &data))) {
-    printf("bp @1\n");
+                             &data)))
     goto EXIT;
-  }
-
 
   if(write(fd, data, size) != size)
     goto EXIT;
