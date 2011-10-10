@@ -1,5 +1,5 @@
 /* File: loader_webp.c
-   Time-stamp: <2011-10-10 18:34:31 gawen>
+   Time-stamp: <2011-10-10 18:54:32 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
    All rights reserved.
@@ -43,14 +43,11 @@
 #include "imlib2_common.h"
 #include "loader.h"
 
-#define BLK_SZ 524288
-
 static uint8_t * read_file(const char *filename, size_t *size,
                            ImlibProgressFunction progress)
 {
-  size_t i      = 0;
-  size_t s      = 0;
-  uint8_t *data = NULL;
+  struct stat buf;
+  uint8_t *data;
   int fd;
 
 #ifndef __EMX__
@@ -60,28 +57,11 @@ static uint8_t * read_file(const char *filename, size_t *size,
 #endif
     return NULL;
 
-  while(1) {
-    size_t n;
+  if(fstat(fd, &buf) < 0 ||
+     !(data = malloc(buf.st_size)))
+    return NULL;
 
-    if(s - i == 0) {
-      s += BLK_SZ;
-      data = realloc(data, s);
-
-      if(!data)
-        return NULL;
-    }
-
-    n = read(fd, data + i, s - i);
-
-    i += n;
-
-    if(n <= 0)
-      break;
-  }
-
-  close(fd);
-
-  *size = i;
+  *size = read(fd, data, buf.st_size);
 
   return data;
 }
