@@ -1,4 +1,4 @@
-/* File: thumbnailer.c
+/* File: imlib2-thumbnailer.c
    Time-stamp: <2011-10-10 21:07:35 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
