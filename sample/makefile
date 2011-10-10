@@ -9,6 +9,7 @@ OBJ = $(foreach obj, $(SRC:.c=.o), $(notdir $(obj)))
 DEP = $(SRC:.c=.d)
 
 PREFIX ?= /usr/local
+MIME   ?= /share/mime
 BIN    ?= /bin
 
 ifndef DISABLE_DEBUG
@@ -30,9 +31,11 @@ clean:
 	$(RM) $(OBJ)
 	$(RM) imlib2-thumbnailer
 
-install:
+install: all
 	$(MKDIR) -p $(DESTDIR)/$(PREFIX)/$(BIN)
 	$(INSTALL_PROGRAM) imlib2-thumbnailer $(DESTDIR)/$(PREFIX)/$(BIN)
+	$(INSTALL_DATA) webp.xml $(DESTDIR)/$(PREFIX)/$(MIME)/packages
+	update-mime-database $(DESTDIR)/$(PREFIX)/$(MIME)
 
 uninstall:
 	$(RM) $(DESTDIR)/$(PREFIX)/$(BIN)/imlib2-thumbnailer
