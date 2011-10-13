@@ -32,7 +32,7 @@ clean:
 
 install:
 	$(INSTALL_DIR) $(DESTDIR)$(LOADERDIR)
-	$(INSTALL_LIBS) webp.so $(DESTDIR)$(LOADERDIR)
+	$(INSTALL_LIB) webp.so $(DESTDIR)$(LOADERDIR)
 
 uninstall:
 	$(RM) $(PLUGINDIR)/webp.so
