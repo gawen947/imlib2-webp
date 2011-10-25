@@ -1,5 +1,5 @@
 /* File: loader_webp.c
-   Time-stamp: <2011-10-12 15:35:15 gawen>
+   Time-stamp: <2011-10-25 16:47:35 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
    All rights reserved.
@@ -98,7 +98,6 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
      im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
 
   if(progress)
-    /* im, percent, update_x, update_y, update_w, update_h */
     progress(im, 100, 0, 0, 0, 0);
 
   ret = 1;
@@ -166,7 +165,6 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
     goto EXIT;
 
   if(progress)
-    /* im, percent, update_x, update_y, update_w, update_h */
     progress(im, 100, 0, 0, 0, 0);
 
   ret = 1;
