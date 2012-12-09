@@ -35,7 +35,8 @@
 
 #include <Imlib2.h>
 
-#define UNSET_FLAGS(flags, f) ((flags) &= (~f))
+#define UNSET_FLAGS(flags, f) ((flags) &= ~(f))
+#define SET_FLAGS(flags, f) ((flags) |= (f))
 
 typedef struct _imlibimage              ImlibImage;
 # ifdef BUILD_X11

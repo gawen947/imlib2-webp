@@ -1,5 +1,5 @@
 /* File: loader_webp.c
-   Time-stamp: <2011-10-25 16:47:35 gawen>
+   Time-stamp: <2012-12-09 21:19:30 gawen>
 
    Copyright (c) 2011 David Hauweele <david@hauweele.net>
    All rights reserved.
@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 
@@ -72,6 +73,10 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
   uint8_t *data;
   size_t size;
   int w,h;
+  int has_alpha;
+#if (WEBP_DECODER_ABI_VERSION >= 0x200)
+  WebPBitstreamFeatures features;
+#endif
   char ret = 0;
 
   if(im->data)
@@ -80,8 +85,17 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
   if(!(data = read_file(im->real_file, &size, progress)))
     return 0;
 
-  if(!WebPGetInfo(data, size, &w, &h))
+#if (WEBP_DECODER_ABI_VERSION >= 0x200)
+  if(WebPGetFeatures(data, size, &features) != VP8_STATUS_OK)
     goto EXIT;
+  w = features.width;
+  h = features.height;
+  has_alpha = features.has_alpha;
+#else /* compatibility with versions <= 0.1.3 */
+  if (!WebPGetInfo(data, size, &w, &h))
+    goto EXIT;
+  has_alpha = 0;
+#endif
 
   if(!im->loader && !im->data) {
     im->w = w;
@@ -90,7 +104,10 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
     if(!IMAGE_DIMENSIONS_OK(w, h))
       goto EXIT;
 
-    UNSET_FLAGS(im->flags, F_HAS_ALPHA);
+    if(!has_alpha)
+      UNSET_FLAGS(im->flags, F_HAS_ALPHA);
+    else
+      SET_FLAGS(im->flags, F_HAS_ALPHA);
     im->format = strdup("webp");
   }
 
