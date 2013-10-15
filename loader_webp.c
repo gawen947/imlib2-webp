@@ -48,7 +48,7 @@ static uint8_t * read_file(const char *filename, size_t *size,
                            ImlibProgressFunction progress)
 {
   struct stat buf;
-  uint8_t *data;
+  uint8_t *data = NULL;
   int fd;
 
 #ifndef __EMX__
@@ -60,10 +60,12 @@ static uint8_t * read_file(const char *filename, size_t *size,
 
   if(fstat(fd, &buf) < 0 ||
      !(data = malloc(buf.st_size)))
-    return NULL;
+    goto EXIT;
 
   *size = read(fd, data, buf.st_size);
 
+EXIT:
+  close(fd);
   return data;
 }
 
