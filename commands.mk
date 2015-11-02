@@ -1,5 +1,5 @@
 # defaults commands
-CC=gcc
+CC=cc
 RM=rm -f
 INSTALL=install
 INSTALL_PROGRAM=$(INSTALL) -s -m 555
