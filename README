@@ -30,11 +30,12 @@ INSTALLATION
 You will need a C compiler like gcc, make and the following dependencies :
 
   - libimlib2-dev
+  - libwebp-dev
   - pkg-config
 
 On debian use the following command as root to install the required packages :
 
-  # aptitude install libimlib2-dev
+  # aptitude install libimlib2-dev libwebp-dev pkg-config
 
 Then enter the following command :
 
