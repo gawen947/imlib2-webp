@@ -2,7 +2,7 @@ include commands.mk
 
 OPTS    := -O2
 CFLAGS  := -std=c99 $(OPTS) $(shell imlib2-config --cflags) -fPIC -Wall
-LDFLAGS := $(shell imlib2-config --libs) -lwebp
+LDFLAGS := $(shell imlib2-config --libs) -lwebp -lwebpdemux
 
 SRC = $(wildcard *.c)
 OBJ = $(foreach obj, $(SRC:.c=.o), $(notdir $(obj)))
@@ -15,7 +15,7 @@ ifndef DISABLE_DEBUG
 	CFLAGS += -ggdb
 endif
 
-.PHONY: all clean
+.PHONY: all clean install
 
 all: webp.so
 
@@ -35,6 +35,6 @@ install:
 	$(INSTALL_LIB) webp.so $(DESTDIR)$(LOADERDIR)
 
 uninstall:
-	$(RM) $(PLUGINDIR)/webp.so
+	$(RM) $(LOADERDIR)/webp.so
 
 -include $(DEP)
