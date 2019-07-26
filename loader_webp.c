@@ -39,6 +39,7 @@
 
 #include <webp/decode.h>
 #include <webp/encode.h>
+#include <webp/demux.h>
 #include <Imlib2.h>
 
 #include "imlib2_common.h"
@@ -76,6 +77,7 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
   size_t size;
   int w,h;
   int has_alpha;
+  int has_animation;
 #if (WEBP_DECODER_ABI_VERSION >= 0x200)
   WebPBitstreamFeatures features;
 #endif
@@ -93,10 +95,12 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
   w = features.width;
   h = features.height;
   has_alpha = features.has_alpha;
+  has_animation = features.has_animation;
 #else /* compatibility with versions <= 0.1.3 */
   if (!WebPGetInfo(data, size, &w, &h))
     goto EXIT;
   has_alpha = 0;
+  has_animation = 0;
 #endif
 
   if(!im->loader && !im->data) {
@@ -113,8 +117,44 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
     im->format = strdup("webp");
   }
 
-  if((!im->data && im->loader) || immediate_load || progress)
-     im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
+  if((!im->data && im->loader) || immediate_load || progress) {
+    if (has_animation == 1) {
+      // Decode first frame of the animated WebP
+      struct WebPData webp_data = {
+        .bytes = (uint8_t*) data,
+        .size = size
+      };
+
+      WebPDemuxer* demux = WebPDemux(&webp_data);
+      WebPIterator iter;
+      WebPDecoderConfig config;
+
+      WebPInitDecoderConfig(&config);
+      config.options.use_threads = 1;
+      config.output.colorspace = MODE_BGRA;
+
+      uint8_t* memory_buffer = (uint8_t*) malloc(4 * w * h);
+
+      config.output.u.RGBA.rgba = memory_buffer;
+      config.output.u.RGBA.stride = 4 * w;
+      config.output.u.RGBA.size = config.output.u.RGBA.stride * h;
+      config.output.is_external_memory = 1;
+
+      if (WebPDemuxGetFrame(demux, 1, &iter)) {
+        if (WebPDecode(iter.fragment.bytes, iter.fragment.size, &config) == VP8_STATUS_OK) {
+          im->data = (DATA32*) memory_buffer;
+        } else {
+          free(memory_buffer);
+          goto EXIT;
+        }
+      }
+
+      WebPDemuxReleaseIterator(&iter);
+      WebPDemuxDelete(demux);
+    } else {
+      im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
+    }
+  }
 
   if(progress)
     progress(im, 100, 0, 0, 0, 0);
