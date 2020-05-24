@@ -1,5 +1,10 @@
 include commands.mk
 
+TARGET = webp.so
+MAJOR  = 1
+MINOR  = 1
+PATCH  = 0
+
 OPTS    := -O2
 CFLAGS  := -std=c99 $(OPTS) $(shell imlib2-config --cflags) -fPIC -Wall
 LDFLAGS := $(shell imlib2-config --libs) -lwebp -lwebpdemux
@@ -11,15 +16,23 @@ DEP = $(SRC:.c=.d)
 LIBDIR    ?= $(shell pkg-config --variable=libdir imlib2)
 LOADERDIR ?= $(LIBDIR)/imlib2/loaders/
 
+version = $(MAJOR).$(MINOR).$(PATCH)
+CFLAGS += -DVERSION="\"$(version)\""
+
+commit = $(shell ./hash.sh)
+ifneq ($(commit), UNKNOWN)
+	CFLAGS += -DCOMMIT="\"$(commit)\""
+endif
+
 ifndef DISABLE_DEBUG
 	CFLAGS += -ggdb
 endif
 
 .PHONY: all clean install
 
-all: webp.so
+all: $(TARGET)
 
-webp.so: $(OBJ)
+$(TARGET): $(OBJ)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
@@ -28,13 +41,13 @@ webp.so: $(OBJ)
 clean:
 	$(RM) $(DEP)
 	$(RM) $(OBJ)
-	$(RM) webp.so
+	$(RM) $(TARGET)
 
 install:
 	$(INSTALL_DIR) $(DESTDIR)$(LOADERDIR)
 	$(INSTALL_LIB) webp.so $(DESTDIR)$(LOADERDIR)
 
 uninstall:
-	$(RM) $(LOADERDIR)/webp.so
+	$(RM) $(LOADERDIR)/$(TARGET)
 
 -include $(DEP)

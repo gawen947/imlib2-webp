@@ -46,6 +46,14 @@
 #include "imlib2_common.h"
 #include "loader.h"
 
+/* Store version and commit as unused string constant. */
+#ifdef VERSION
+const char loader_webp_version[] = VERSION;
+#endif
+#ifdef COMMIT
+const char loader_webp_commit[] = COMMIT;
+#endif
+
 DATA32 * __imlib_AllocateData(ImlibImage *im);
 
 static uint8_t * read_file(const char *filename, size_t *size,
