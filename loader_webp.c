@@ -46,6 +46,8 @@
 #include "imlib2_common.h"
 #include "loader.h"
 
+DATA32 * __imlib_AllocateData(ImlibImage *im);
+
 static uint8_t * read_file(const char *filename, size_t *size,
                            ImlibProgressFunction progress)
 {
@@ -76,54 +78,56 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
 {
   uint8_t *data;
   size_t size;
-  int w,h;
   int has_alpha;
   int has_animation;
+  char ret = 0;
 #if (WEBP_DECODER_ABI_VERSION >= 0x200)
   WebPBitstreamFeatures features;
 #endif
-  char ret = 0;
 
-  if(im->data)
-    return 0;
-
+  /* Load the WebP file into one single buffer. */
   if(!(data = read_file(im->real_file, &size, progress)))
     return 0;
 
+  /* Extract WebP features. */
 #if (WEBP_DECODER_ABI_VERSION >= 0x200)
   if(WebPGetFeatures(data, size, &features) != VP8_STATUS_OK)
     goto EXIT;
-  w = features.width;
-  h = features.height;
-  has_alpha = features.has_alpha;
+  im->w = features.width;
+  im->h = features.height;
+  has_alpha     = features.has_alpha;
   has_animation = features.has_animation;
 #else /* compatibility with versions <= 0.1.3 */
-  if (!WebPGetInfo(data, size, &w, &h))
+  if (!WebPGetInfo(data, size, &im->w, &im->h))
     goto EXIT;
-  has_alpha = 0;
+  has_alpha     = 0;
   has_animation = 0;
 #endif
 
-  if(!im->loader && !im->data) {
-    im->w = w;
-    im->h = h;
+  if(!IMAGE_DIMENSIONS_OK(im->w, im->h))
+    goto EXIT;
 
-    if(!IMAGE_DIMENSIONS_OK(w, h))
-      goto EXIT;
+  if(!has_alpha)
+    UNSET_FLAGS(im->flags, F_HAS_ALPHA);
+  else
+    SET_FLAGS(im->flags, F_HAS_ALPHA);
 
-    if(!has_alpha)
-      UNSET_FLAGS(im->flags, F_HAS_ALPHA);
-    else
-      SET_FLAGS(im->flags, F_HAS_ALPHA);
-    im->format = strdup("webp");
-  }
+  im->format = strdup("webp");
 
-  if((!im->data && im->loader) || immediate_load || progress) {
-    if (has_animation == 1) {
-      // Decode first frame of the animated WebP
+  /* If this was not true, then we are only interested
+     in the image size and format so we stop here. */
+  if(im->loader || immediate_load || progress) {
+    /* Now we are commited to load the image.
+       Note that Imlib2 will call __imlib_FreeData(im)
+       if we return with an error code. */
+    __imlib_AllocateData(im);
+
+    if(has_animation) {
+      /* Unfortunately Imlib2 does not support animation.
+         So we only decode the first frame for animated WebP. */
       struct WebPData webp_data = {
-        .bytes = (uint8_t*) data,
-        .size = size
+        .bytes = (uint8_t*)data,
+        .size  = size
       };
 
       WebPDemuxer* demux = WebPDemux(&webp_data);
@@ -131,34 +135,31 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
       WebPDecoderConfig config;
 
       WebPInitDecoderConfig(&config);
+
       config.options.use_threads = 1;
-      config.output.colorspace = MODE_BGRA;
+      config.output.colorspace   = MODE_BGRA;
 
-      uint8_t* memory_buffer = (uint8_t*) malloc(4 * w * h);
-
-      config.output.u.RGBA.rgba = memory_buffer;
-      config.output.u.RGBA.stride = 4 * w;
-      config.output.u.RGBA.size = config.output.u.RGBA.stride * h;
+      config.output.u.RGBA.rgba        = (uint8_t *)im->data;
+      config.output.u.RGBA.stride      = im->w * sizeof(DATA32);
+      config.output.u.RGBA.size        = config.output.u.RGBA.stride * im->h;
       config.output.is_external_memory = 1;
 
-      if (WebPDemuxGetFrame(demux, 1, &iter)) {
-        if (WebPDecode(iter.fragment.bytes, iter.fragment.size, &config) == VP8_STATUS_OK) {
-          im->data = (DATA32*) memory_buffer;
-        } else {
-          free(memory_buffer);
-          goto EXIT;
-        }
-      }
+      if(WebPDemuxGetFrame(demux, 1, &iter) &&
+         WebPDecode(iter.fragment.bytes, iter.fragment.size, &config) == VP8_STATUS_OK)
+        ret = 1;
 
       WebPDemuxReleaseIterator(&iter);
       WebPDemuxDelete(demux);
-    } else {
-      im->data = (DATA32*)WebPDecodeBGRA(data, size, &w, &h);
+
+      if(!ret)
+        goto EXIT;
     }
+    else if (!WebPDecodeBGRAInto(data, size, (uint8_t *)im->data, im->w * im->h * sizeof(DATA32), im->w * sizeof(DATA32)))
+      goto EXIT;
   }
 
   if(progress)
-    progress(im, 100, 0, 0, 0, 0);
+    progress(im, 100, 0, 0, im->w, im->h);
 
   ret = 1;
 
@@ -178,9 +179,7 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
   int quality = 75;
   char ret = 0;
 
-  if(!im->data)
-    return 0;
-
+  /* Open the destination file. */
 #ifndef __EMX__
   if((fd = open(im->real_file, O_WRONLY | O_CREAT,
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) < 0)
@@ -190,7 +189,7 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
 #endif
     return 0;
 
-  /* look for tags attached to image to get extra parameters like quality
+  /* Look for tags attached to image to get extra parameters like quality
      settings etc. - this is the "api" to hint for extra information for
      saver modules */
   tag = __imlib_GetTag(im, "compression");
@@ -202,15 +201,15 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
     else if(compression > 9)
       compression = 9;
 
-    quality = (9 - compression) * 10;
-    quality = quality * 10 / 9;
+    quality = ((9 - compression) * 100) / 9;
   }
+
   tag = __imlib_GetTag(im, "quality");
   if(tag) {
     quality = tag->val;
 
-    if(quality < 1)
-      quality = 1;
+    if(quality < 0)
+      quality = 0;
     else if(quality > 100)
       quality = 100;
   }
@@ -221,11 +220,11 @@ char save(ImlibImage *im, ImlibProgressFunction progress,
                              im->w << 2, fqual, &data)))
     goto EXIT;
 
-  if(write(fd, data, size) != size)
+  if(write(fd, data, size) != (ssize_t)size)
     goto EXIT;
 
   if(progress)
-    progress(im, 100, 0, 0, 0, 0);
+    progress(im, 100, 0, 0, im->w, im->h);
 
   ret = 1;
 
