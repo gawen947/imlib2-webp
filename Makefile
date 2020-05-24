@@ -5,7 +5,7 @@ PATCH  = 0
 
 OPTS    := -O2
 CFLAGS  := -std=c99 $(OPTS) $(shell imlib2-config --cflags) -fPIC -Wall
-LDFLAGS := $(shell imlib2-config --libs) -lwebp -lwebpdemux
+LDFLAGS := $(shell imlib2-config --libs) $(shell pkg-config --libs libwebp) $(shell pkg-config --libs libwebpdemux)
 
 SRC = $(wildcard *.c)
 OBJ = $(foreach obj, $(SRC:.c=.o), $(notdir $(obj)))
