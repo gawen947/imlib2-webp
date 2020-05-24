@@ -1,5 +1,3 @@
-include commands.mk
-
 TARGET = webp.so
 MAJOR  = 1
 MINOR  = 1
@@ -39,15 +37,15 @@ $(TARGET): $(OBJ)
 	$(CC) -Wp,-MMD,$*.d -c $(CFLAGS) -o $@ $<
 
 clean:
-	$(RM) $(DEP)
-	$(RM) $(OBJ)
-	$(RM) $(TARGET)
+	rm $(DEP)
+	rm $(OBJ)
+	rm $(TARGET)
 
 install:
-	$(INSTALL_DIR) $(DESTDIR)$(LOADERDIR)
-	$(INSTALL_LIB) webp.so $(DESTDIR)$(LOADERDIR)
+	install -d $(DESTDIR)$(LOADERDIR)
+	install -s -m 444 webp.so $(DESTDIR)$(LOADERDIR)
 
 uninstall:
-	$(RM) $(LOADERDIR)/$(TARGET)
+	rm $(LOADERDIR)/$(TARGET)
 
 -include $(DEP)
