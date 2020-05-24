@@ -1,9 +1,9 @@
-Imlib2-WebP
-===========
+# Imlib2-WebP
+
 A WebP loader for Imlib2. Published under the BSD license.
 
-About WebP
-==========
+## About WebP
+
 WebP is a new image format that provides lossy compression for photographic 
 images. In a large scale study of 900,000 web images, WebP images were 39.8%
 smaller than jpeg images of similar quality.
@@ -16,8 +16,8 @@ and better looking images that can help make the web faster.
 
 You may find more informations at http://code.google.com/speed/webp
 
-About Imlib2
-============
+## About Imlib2
+
 Imlib2 is an advanced replacement for libraries like libXpm. Imlib2 provides
 many more features with much greater flexibility and speed than standard
 libraries, including font rasterization, rotation, RGBA space rendering and 
@@ -25,22 +25,22 @@ blending, dynamic binary filters, scripting, and more.
 
 You may find more informations at http://docs.enlightenment.org/api/imlib2/html
 
-INSTALLATION
-============
+## INSTALLATION
+
 You will need a C compiler like gcc, make and the following dependencies :
 
-  - libimlib2-dev
-  - libwebp-dev
-  - pkg-config
+* libimlib2-dev
+* libwebp-dev
+* pkg-config
 
 On debian use the following command as root to install the required packages :
 
-  # aptitude install libimlib2-dev libwebp-dev pkg-config
+    # aptitude install libimlib2-dev libwebp-dev pkg-config
 
 Then enter the following command :
 
-  $ make
-  $ sudo make install
+    $ make
+    $ sudo make install
 
 This will install the webp loader for Imlib2.
 
