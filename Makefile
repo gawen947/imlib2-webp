@@ -22,6 +22,11 @@ ifneq ($(commit), UNKNOWN)
 	CFLAGS += -DCOMMIT="\"$(commit)\""
 endif
 
+CFLAGS += $(shell ./imlib2-version.sh)
+ifneq ($(.SHELLSTATUS),0)
+$(error cannot guess imlib2 version)
+endif
+
 ifndef DISABLE_DEBUG
 	CFLAGS += -ggdb
 endif

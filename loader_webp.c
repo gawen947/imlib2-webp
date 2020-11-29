@@ -54,7 +54,35 @@ const char loader_webp_version[] = VERSION;
 const char loader_webp_commit[] = COMMIT;
 #endif
 
+#if (IMLIB2_VERSION_MAJOR >= 1 && IMLIB2_VERSION_MINOR >= 6)
 DATA32 * __imlib_AllocateData(ImlibImage *im);
+void __imlib_FreeData(ImlibImage *im);
+#else
+/* These symbols do not exist in Imlib2 <1.6.0, we redefine them. */
+static DATA32 * __imlib_AllocateData(ImlibImage *im)
+{
+  int w = im->w;
+  int h = im->h;
+
+  if(w <= 0 || h <= 0)
+    return NULL;
+
+  im->data = malloc(w * h * sizeof(DATA32));
+
+  return im->data;
+}
+
+static void __imlib_FreeData(ImlibImage *im)
+{
+  if(im->data) {
+    free(im->data);
+    im->data = NULL;
+  }
+
+  im->w = 0;
+  im->h = 0;
+}
+#endif /* IMLIB2_VERSION */
 
 static uint8_t * read_file(const char *filename, size_t *size,
                            ImlibProgressFunction progress)
@@ -126,8 +154,9 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
      in the image size and format so we stop here. */
   if(im->loader || immediate_load || progress) {
     /* Now we are commited to load the image.
-       Note that Imlib2 will call __imlib_FreeData(im)
-       if we return with an error code. */
+       Note that Imlib2 would call __imlib_FreeData(im)
+       if we return with an error code. But we still free
+       manually to ensure it works with Imlib2 <1.6.0. */
     __imlib_AllocateData(im);
 
     if(has_animation) {
@@ -160,17 +189,20 @@ char load(ImlibImage * im, ImlibProgressFunction progress,
       WebPDemuxDelete(demux);
 
       if(!ret)
-        goto EXIT;
+        goto ERROR;
     }
     else if (!WebPDecodeBGRAInto(data, size, (uint8_t *)im->data, im->w * im->h * sizeof(DATA32), im->w * sizeof(DATA32)))
-      goto EXIT;
+      goto ERROR;
   }
 
   if(progress)
     progress(im, 100, 0, 0, im->w, im->h);
 
   ret = 1;
+  goto EXIT;
 
+ERROR:
+  __imlib_FreeData(im);
 EXIT:
   free(data);
   return ret;
