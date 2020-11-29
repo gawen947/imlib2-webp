@@ -37,15 +37,15 @@ $(TARGET): $(OBJ)
 	$(CC) -Wp,-MMD,$*.d -c $(CFLAGS) -o $@ $<
 
 clean:
-	rm $(DEP)
-	rm $(OBJ)
-	rm $(TARGET)
+	rm -f $(DEP)
+	rm -f $(OBJ)
+	rm -f $(TARGET)
 
 install:
 	install -d $(DESTDIR)$(LOADERDIR)
 	install -s -m 444 webp.so $(DESTDIR)$(LOADERDIR)
 
 uninstall:
-	rm $(LOADERDIR)/$(TARGET)
+	rm -f $(LOADERDIR)/$(TARGET)
 
 -include $(DEP)
