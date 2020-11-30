@@ -1,7 +1,7 @@
 TARGET = webp.so
 MAJOR  = 1
 MINOR  = 1
-PATCH  = 1
+PATCH  = 2
 
 OPTS    := -O2
 CFLAGS  := -std=c99 $(OPTS) $(shell imlib2-config --cflags) -fPIC -Wall
