@@ -1,17 +1,17 @@
 TARGET = webp.so
 MAJOR  = 1
 MINOR  = 1
-PATCH  = 2
+PATCH  = 3
 
 OPTS    := -O2
-CFLAGS  := -std=c99 $(OPTS) $(shell imlib2-config --cflags) -fPIC -Wall
-LDFLAGS := $(shell imlib2-config --libs) $(shell pkg-config --libs libwebp) $(shell pkg-config --libs libwebpdemux)
+CFLAGS  := -std=c99 $(OPTS) $(shell pkg-config imlib2 --cflags) -fPIC -Wall
+LDFLAGS := $(shell pkg-config imlib2 --libs) $(shell pkg-config imlib2 --libs libwebp) $(shell pkg-config imlib2 --libs libwebpdemux)
 
 SRC = $(wildcard *.c)
 OBJ = $(foreach obj, $(SRC:.c=.o), $(notdir $(obj)))
 DEP = $(SRC:.c=.d)
 
-LIBDIR    ?= $(shell pkg-config --variable=libdir imlib2)
+LIBDIR    ?= $(shell pkg-config imlib2 --variable=libdir)
 LOADERDIR ?= $(LIBDIR)/imlib2/loaders/
 
 version = $(MAJOR).$(MINOR).$(PATCH)
